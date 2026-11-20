@@ -1,28 +1,31 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import Globe from "../components/Globe.astro";
 ---
 
-<Layout title="bsws">
+<Layout title="bsws" globe={false}>
   <section class="hero-section">
     <div class="container">
       <div class="hero-personal">
-        <h1 class="hero-name">[ Ankit Biswas ]</h1>
+        <div class="hero-id">
+          <h1 class="hero-name">[ Ankit Biswas ]</h1>
 
-        <ul class="hero-links">
-          <li>
-            <a href="https://github.com/biswaszin">github</a>
-          </li>
-          <li>
-            <a href="https://www.linkedin.com/in/biswaszin/">linkedin</a>
-          </li>
-          <li>
-            <a href="mailto:biswaszin@gmail.com">biswaszin[at]gmail.com</a>
-          </li>
+          <ul class="hero-links">
+            <li>
+              <a href="https://github.com/biswaszin">github</a>
+            </li>
+            <li>
+              <a href="https://www.linkedin.com/in/biswaszin/">linkedin</a>
+            </li>
 
-          <!--<li>
-            <p> to change into dark theme, click on the avatar </p>
-          </li>-->
-        </ul>
+            <!--<li>
+              <p> to change into dark theme, click on the avatar </p>
+            </li>-->
+          </ul>
+        </div>
+
+        <!-- Fixed bottom-left on desktop; sits beside the name on phones. -->
+        <Globe hero />
       </div>
 
       <div class="hero-text">

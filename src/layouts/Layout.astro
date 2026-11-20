@@ -1,8 +1,9 @@
 ---
 import "../styles/global.css";
 import Navbar from "../components/Navbar.astro";
+import Globe from "../components/Globe.astro";
 import { STATES, CAT_THEME } from "../themes.js";
-const { title = "bsws." } = Astro.props;
+const { title = "bsws.", globe = true } = Astro.props;
 const isCatsPage = Astro.url.pathname.replace(/\/+$/, "") === "/cats";
 ---
 
@@ -15,7 +16,7 @@ const isCatsPage = Astro.url.pathname.replace(/\/+$/, "") === "/cats";
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&display=swap"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap"
       rel="stylesheet"
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -46,6 +47,7 @@ const isCatsPage = Astro.url.pathname.replace(/\/+$/, "") === "/cats";
   <body>
     <Navbar />
     <slot />
+    {globe && <Globe />}
     <!-- oneko cursor-chasing cat (black cat, white outline) -->
     <script is:inline src="/oneko.js" data-cat="/images/oneko-blackcat.png"></script>
   </body>

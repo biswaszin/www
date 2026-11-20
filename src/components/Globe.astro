@@ -1,0 +1,235 @@
+---
+// Spinning ASCII globe: a disc of shuffling mixed-script glyphs where land is
+// drawn bold and sea is drawn faint, with a blinking pin on Kolkata.
+// `hero` marks the home-page instance that sits in the hero on phones.
+const { hero = false } = Astro.props;
+---
+
+<div class:list={["globe", { "globe--hero": hero }]} aria-hidden="true">
+  <pre class="globe-grid"></pre>
+  <div class="globe-label" hidden><span></span></div>
+</div>
+
+<style>
+  .globe {
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    z-index: 1;
+    font-size: 8px;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .globe :global(span) {
+    font-style: normal;
+  }
+
+  .globe-grid {
+    margin: 0;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 1em;
+    line-height: 1;
+    font-style: normal;
+    color: color-mix(in srgb, var(--secondary-color) 38%, transparent);
+  }
+
+  .globe-grid :global(b) {
+    font-weight: 700;
+    color: var(--secondary-color);
+  }
+
+  .globe-grid :global(.globe-pin) {
+    display: inline-block;
+    width: 0.6em;
+    text-align: center;
+    font-weight: 700;
+    color: var(--secondary-color);
+    transform: scale(1.6);
+    animation: globe-blink 1s steps(1, end) infinite;
+  }
+
+  .globe-label {
+    position: absolute;
+    left: calc(var(--col, 0) * 0.6em);
+    top: calc(var(--row, 0) * 1em + 0.5em);
+    transform: translateY(-50%);
+  }
+
+  .globe-label.is-left {
+    transform: translate(-100%, -50%);
+  }
+
+  .globe-label span {
+    display: block;
+    font-size: 11px;
+    line-height: 1.2;
+    padding: 0 3px;
+    white-space: nowrap;
+    color: var(--secondary-color);
+    background: var(--primary-color);
+  }
+
+  @keyframes globe-blink {
+    50% {
+      visibility: hidden;
+    }
+  }
+
+  @media (max-width: 652px) {
+    .globe {
+      display: none;
+    }
+
+    .globe--hero {
+      display: block;
+      position: relative;
+      left: auto;
+      bottom: auto;
+      flex-shrink: 0;
+      font-size: clamp(4px, 1.55vw, 6.5px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .globe-grid :global(.globe-pin) {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  // 120x60 equirectangular land bitmask (3° cells, row 0 = 90°N, col 0 = 180°W),
+  // rasterized from Natural Earth 1:110m land via world-atlas@2.0.2.
+  const MASK_B64 =
+    "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgH/wHwAAAAAAAAAAAAAA8Mf/PwALAAAYAAAAAACY9OP/HwAAAATAAQAAAAAYfQP+HwAAQID/LwgAwAPA0x/8BwAwAOz///8B4f///3X8AQD+8+//////wP///z04YAD3//////9/4P//HwwwAMD7//////86AMH/H1wAAETz/////wcCAAD/f/wAAAT5/////wEDAAD+//0BAPr//////w8BAAD4/z8AAPj//////w8AAAD4/z8AAPi/3v///wsAAAD4/x8AALof7v///wkAAAD4/wcAAA7O3///bwAAAAD4/wcAAA7p3///XwQAAADw/wMAAHwA////DwMAAADg/wEAAP4Z////nwAAAACADwEAAP9/7///HwAAAAAADwAAgP//H///DwAAAAAABgIAgP///vj7AwAAAAAAThAAgP//fPB4AQAAAAAAeAAAwP//PXD4EAAAAAAAwAAAwP//D2DgAAAAAAAAgLgAgP//H2CAAAAAAAAAAPwAAP//HwAAIAAAAAAAAPwHAML/DwAQDAAAAAAAAPwHAID/BwBgBwAAAAAAAP4fAID/AwBAFgEAAAAAAP5/AAD/AQBAAA4AAAAAAP7/AAD/AQAAAxwAAAAAAPz/AAD/AQAAAAAAAAAAAPh/AAD/EwAAgAkAAAAAAPB/AAD/GQAA4BsAAAAAAOB/AAD/CAAA8B8AAAAAAOA/AAD+DAAA/D8AAAAAAPAPAAB+AAAA/H8AAAAAAPAPAAB+AAAA/H8AAAAAAPAHAAA8AAAA+H8AAAAAAPADAAAEAAAACDwAAAAAAPgBAAAAAAAAADhAAAAAAHgAAAAAAAAAAABAAAAAADAAAAAAAAAAAAAgAAAAADgAAAAAAAAAAAAQAAAAABgAAAAAAAAAAAAAAAAAABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAACAAAAAA8ID//x8AAAAAAHAAAED3//f///8DAAAI9PIAgP////////8PAPj//x8A+P////////8HQPz//wM4/P////////8DAP7////8//////////8HAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+  const MW = 120;
+  const MH = 60;
+  const MASK = Uint8Array.from(atob(MASK_B64), (ch) => ch.charCodeAt(0));
+  const isLand = (lat: number, lon: number) => {
+    const x = (((Math.floor((lon + 180) / 3) % MW) + MW) % MW);
+    const y = Math.min(MH - 1, Math.max(0, Math.floor((90 - lat) / 3)));
+    const i = y * MW + x;
+    return (MASK[i >> 3] >> (i & 7)) & 1;
+  };
+
+  const GLYPHS = Array.from(
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" +
+      "ÀÂÄÃÅÆÇÉÊËÌÎÏÑÕÖØÙÛÜÝßàâäãåæçéêëîïñõöøûüýÿĀăĞğİŁłŒœŞşŦŧŽž" +
+      "ΓΔΘΛΞΠΣΦΨΩαβγδεζηθλμξπσφψω" +
+      "БГДЖЗИЙЛПФЦЧШЩЪЫЬЭЮЯбвгджзийклмнптфцчшщъыьэюяѣѲ"
+  );
+  const glyph = () => GLYPHS[(Math.random() * GLYPHS.length) | 0];
+
+  const ROWS = 22;
+  const COLS = 37; // ≈ ROWS / 0.6 so the disc is round in a 0.6em-wide mono font
+  const TILT = 0.3; // radians the north pole leans toward the viewer
+  const SPEED = 15; // degrees per second
+  const FPS = 12;
+  const SHUFFLE = 0.12; // share of glyphs swapped each frame
+  const PIN = { lat: 22.57, lon: 88.36 }; // Kolkata
+  const D = Math.PI / 180;
+  const cosT = Math.cos(TILT);
+  const sinT = Math.sin(TILT);
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Per-cell geometry is fixed; only the centre longitude changes.
+  type Cell = { lat: number; dLon: number } | null;
+  const cells: Cell[] = [];
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const x = ((c + 0.5) * 2) / COLS - 1;
+      const y = 1 - ((r + 0.5) * 2) / ROWS;
+      const z2 = 1 - x * x - y * y;
+      if (z2 < 0) {
+        cells.push(null);
+        continue;
+      }
+      const z = Math.sqrt(z2);
+      const yw = y * cosT + z * sinT;
+      const zw = -y * sinT + z * cosT;
+      cells.push({ lat: Math.asin(yw) / D, dLon: Math.atan2(x, zw) / D });
+    }
+  }
+
+  function pinCell(lon0: number) {
+    const phi = PIN.lat * D;
+    const lam = (PIN.lon - lon0) * D;
+    const xw = Math.cos(phi) * Math.sin(lam);
+    const yw = Math.sin(phi);
+    const zw = Math.cos(phi) * Math.cos(lam);
+    const y = yw * cosT - zw * sinT;
+    const z = yw * sinT + zw * cosT;
+    if (z < 0.2) return null;
+    return {
+      r: Math.min(ROWS - 1, Math.floor(((1 - y) / 2) * ROWS)),
+      c: Math.min(COLS - 1, Math.floor(((xw + 1) / 2) * COLS)),
+    };
+  }
+
+  function mount(root: HTMLElement) {
+    const grid = root.querySelector<HTMLElement>(".globe-grid")!;
+    const label = root.querySelector<HTMLElement>(".globe-label")!;
+    const labelText = label.querySelector("span")!;
+    const chars = cells.map((cell) => (cell ? glyph() : " "));
+
+    function draw(lon0: number) {
+      const pin = pinCell(lon0);
+      let html = "";
+      for (let r = 0; r < ROWS; r++) {
+        let bold = false;
+        for (let c = 0; c < COLS; c++) {
+          const i = r * COLS + c;
+          const cell = cells[i];
+          const land = !!cell && !!isLand(cell.lat, cell.dLon + lon0);
+          if (land !== bold) {
+            html += land ? "<b>" : "</b>";
+            bold = land;
+          }
+          html +=
+            pin && pin.r === r && pin.c === c
+              ? '<span class="globe-pin">◉</span>'
+              : chars[i];
+        }
+        if (bold) html += "</b>";
+        html += "\n";
+      }
+      grid.innerHTML = html;
+
+      if (pin) {
+        const left = pin.c > COLS * 0.55;
+        label.style.setProperty("--row", String(pin.r));
+        label.style.setProperty("--col", String(left ? pin.c - 0.5 : pin.c + 1.5));
+        label.classList.toggle("is-left", left);
+        labelText.textContent = left ? "kolkata ->" : "<- kolkata";
+        label.hidden = false;
+      } else {
+        label.hidden = true;
+      }
+    }
+
+    if (reduceMotion) {
+      draw(PIN.lon);
+      return;
+    }
+
+    let start = 0;
+    let last = 0;
+    const startLon = PIN.lon + 120; // Kolkata rotates into view shortly after load
+    function tick(now: number) {
+      if (!start) start = now;
+      if (now - last >= 1000 / FPS) {
+        last = now;
+        for (let i = 0; i < chars.length; i++) {
+          if (cells[i] && Math.random() < SHUFFLE) chars[i] = glyph();
+        }
+        // Lowering the centre longitude moves land left-to-right, as Earth spins.
+        draw(startLon - ((now - start) / 1000) * SPEED);
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  document.querySelectorAll<HTMLElement>(".globe").forEach(mount);
+</script>

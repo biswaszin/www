@@ -195,6 +195,17 @@ span {
     height: 120px;
   }
 
+  .hero-section .hero-personal {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .hero-id {
+    min-width: 0;
+  }
+
   .hero-name {
     font-size: clamp(1.5rem, 5vw, 2rem);
   }
@@ -205,10 +216,6 @@ span {
     gap: 0.75rem 1.5rem;
     width: auto;
     min-width: 0;
-  }
-
-  .hero-links li:last-child {
-    flex-basis: 100%;
   }
 
   .hero-links li a {
