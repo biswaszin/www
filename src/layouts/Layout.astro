@@ -3,8 +3,14 @@ import "../styles/global.css";
 import Navbar from "../components/Navbar.astro";
 import Globe from "../components/Globe.astro";
 import { STATES, CAT_THEME } from "../themes.js";
+import { GLYPH_SETS } from "../globeGlyphs.js";
 const { title = "bsws.", globe = true } = Astro.props;
 const isCatsPage = Astro.url.pathname.replace(/\/+$/, "") === "/cats";
+// Fonts for the globe's extra scripts. Google serves them by unicode-range, so
+// each one only downloads once its script is actually on screen.
+const globeFonts = GLYPH_SETS.filter((set) => set.font)
+  .map((set) => `&family=${set.font.replaceAll(" ", "+")}:wght@400;700`)
+  .join("");
 ---
 
 <!doctype html>
@@ -22,7 +28,7 @@ const isCatsPage = Astro.url.pathname.replace(/\/+$/, "") === "/cats";
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Jacquard+12+Charted&family=Noto+Sans+Devanagari:wght@400;700&display=swap"
+      href={`https://fonts.googleapis.com/css2?family=Jacquard+12+Charted${globeFonts}&display=swap`}
       rel="stylesheet"
     />
     <link rel="icon" type="image/png" href="/images/favicon.ico" />

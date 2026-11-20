@@ -1,17 +1,26 @@
 ---
 // Spinning ASCII globe: a disc of shuffling mixed-script glyphs where land is
 // drawn bold and sea is drawn faint, with a blinking pin on Kolkata.
-// Clicking it toggles the glyphs between the default set and Devanagari for the
-// rest of the tab session. `hero` marks the home-page instance that sits in the
-// hero on phones.
+// Clicking it cycles through the glyph sets in src/globeGlyphs.js (default ->
+// hindi -> bengali), remembered for the tab session. `hero` marks the home-page
+// instance that sits in the hero on phones.
+import { GLYPH_SETS } from "../globeGlyphs.js";
+
 const { hero = false } = Astro.props;
+// Font stack for the scripts JetBrains Mono lacks; the browser picks the right
+// one per character, so mixed scripts mid-ripple still render.
+const wideFont = [
+  ...GLYPH_SETS.filter((set) => set.font).map((set) => `"${set.font}"`),
+  "sans-serif",
+].join(", ");
 ---
 
 <div
   class:list={["globe", { "globe--hero": hero }]}
   role="button"
   tabindex="0"
-  aria-label="Globe: switch letters to Devanagari"
+  aria-label="Globe: switch letters"
+  style={`--globe-wide-font: ${wideFont}`}
 >
   <pre class="globe-grid" aria-hidden="true"></pre>
   <div class="globe-label" aria-hidden="true" hidden><span></span></div>
@@ -66,9 +75,9 @@ const { hero = false } = Astro.props;
     font-style: normal;
   }
 
-  /* Devanagari is wider than the 0.6em mono cell, so each glyph gets its own
+  /* Indic letters are wider than the 0.6em mono cell, so each glyph gets its own
      fixed-width box and is drawn slightly smaller: the disc keeps its shape. */
-  .globe-grid :global(.dv) {
+  .globe-grid :global(.w) {
     /* em here is the shrunken 0.8em size, so 0.75em wide x 1.25 tall equals
        the parent's 0.6em x 1em mono cell exactly. */
     display: inline-block;
@@ -77,7 +86,7 @@ const { hero = false } = Astro.props;
     overflow: visible;
     text-align: center;
     vertical-align: top;
-    font-family: "Noto Sans Devanagari", sans-serif;
+    font-family: var(--globe-wide-font);
     font-style: normal;
     font-size: 0.8em;
     line-height: 1.25;
@@ -124,7 +133,7 @@ const { hero = false } = Astro.props;
     line-height: 1.2;
     padding: 0 3px;
     white-space: nowrap;
-    font-family: "JetBrains Mono", "Noto Sans Devanagari", monospace;
+    font-family: "JetBrains Mono", var(--globe-wide-font), monospace;
     color: var(--secondary-color);
     background: var(--primary-color);
   }
@@ -159,6 +168,8 @@ const { hero = false } = Astro.props;
 </style>
 
 <script>
+  import { GLYPH_SETS } from "../globeGlyphs.js";
+
   // 120x60 equirectangular land bitmask (3° cells, row 0 = 90°N, col 0 = 180°W),
   // rasterized from Natural Earth 1:110m land via world-atlas@2.0.2.
   const MASK_B64 =
@@ -173,34 +184,27 @@ const { hero = false } = Astro.props;
     return (MASK[i >> 3] >> (i & 7)) & 1;
   };
 
-  const GLYPHS = Array.from(
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" +
-      "ÀÂÄÃÅÆÇÉÊËÌÎÏÑÕÖØÙÛÜÝßàâäãåæçéêëîïñõöøûüýÿĀăĞğİŁłŒœŞşŦŧŽž" +
-      "ΓΔΘΛΞΠΣΦΨΩαβγδεζηθλμξπσφψω" +
-      "БГДЖЗИЙЛПФЦЧШЩЪЫЬЭЮЯбвгджзийклмнптфцчшщъыьэюяѣѲ"
-  );
-  // Standalone Devanagari letters and digits only: no combining vowel signs.
-  const DEVA = Array.from(
-    "अआइईउऊएऐओऔकखगघचछजझटठडढणतथदधनपफबभमयरलवशषसह०१२३४५६७८९"
-  );
-  type Mode = "latin" | "deva";
-  const SETS: Record<Mode, string[]> = { latin: GLYPHS, deva: DEVA };
-  const glyph = (mode: Mode) => {
-    const set = SETS[mode];
-    return set[(Math.random() * set.length) | 0];
+  const SETS = GLYPH_SETS.map((set) => ({
+    ...set,
+    chars: Array.from(set.glyphs),
+  }));
+  const glyph = (set: number) => {
+    const chars = SETS[set].chars;
+    return chars[(Math.random() * chars.length) | 0];
   };
 
   const STORAGE_KEY = "globeScript";
-  const loadMode = (): Mode => {
+  const loadMode = () => {
     try {
-      return sessionStorage.getItem(STORAGE_KEY) === "deva" ? "deva" : "latin";
+      const id = sessionStorage.getItem(STORAGE_KEY);
+      return Math.max(0, SETS.findIndex((set) => set.id === id));
     } catch (e) {
-      return "latin";
+      return 0;
     }
   };
-  const saveMode = (mode: Mode) => {
+  const saveMode = (mode: number) => {
     try {
-      sessionStorage.setItem(STORAGE_KEY, mode);
+      sessionStorage.setItem(STORAGE_KEY, SETS[mode].id);
     } catch (e) {}
   };
 
@@ -257,7 +261,7 @@ const { hero = false } = Astro.props;
     const labelText = label.querySelector("span")!;
 
     let mode = loadMode();
-    const script: Mode[] = cells.map(() => mode);
+    const script: number[] = cells.map(() => mode); // glyph set index per cell
     const chars = cells.map((cell) => (cell ? glyph(mode) : " "));
     const switchAt = new Float64Array(cells.length); // when each cell flips script
     let lon0 = PIN.lon;
@@ -266,9 +270,7 @@ const { hero = false } = Astro.props;
     const setAria = () =>
       root.setAttribute(
         "aria-label",
-        mode === "deva"
-          ? "Globe: switch letters back to default"
-          : "Globe: switch letters to Devanagari"
+        `Globe: switch letters to ${SETS[(mode + 1) % SETS.length].id}`
       );
     setAria();
 
@@ -287,8 +289,8 @@ const { hero = false } = Astro.props;
           }
           if (pin && pin.r === r && pin.c === c) {
             html += '<span class="globe-pin">◉</span>';
-          } else if (cell && script[i] === "deva") {
-            html += '<i class="dv">' + chars[i] + "</i>";
+          } else if (cell && SETS[script[i]].font) {
+            html += '<i class="w">' + chars[i] + "</i>";
           } else {
             html += chars[i];
           }
@@ -300,7 +302,7 @@ const { hero = false } = Astro.props;
 
       if (pin) {
         const left = pin.c > COLS * 0.55;
-        const name = mode === "deva" ? "कोलकाता" : "kolkata";
+        const name = SETS[mode].label;
         label.style.setProperty("--row", String(pin.r));
         label.style.setProperty("--col", String(left ? pin.c - 0.5 : pin.c + 1.5));
         label.classList.toggle("is-left", left);
@@ -321,8 +323,8 @@ const { hero = false } = Astro.props;
       }
     }
 
-    function toggle() {
-      mode = mode === "deva" ? "latin" : "deva";
+    function next() {
+      mode = (mode + 1) % SETS.length;
       saveMode(mode);
       setAria();
       // Ripple outward from Kolkata if it's on screen, else from the centre.
@@ -343,11 +345,11 @@ const { hero = false } = Astro.props;
       }
     }
 
-    root.addEventListener("click", toggle);
+    root.addEventListener("click", next);
     root.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        toggle();
+        next();
       }
     });
 
