@@ -49,6 +49,14 @@ const { hero = false } = Astro.props;
     }
   }
 
+  /* The grid is rebuilt every frame. If a press landed on a glyph element that
+     is replaced before release, the browser drops the click, so only the
+     stable .globe root receives pointer events. */
+  .globe-grid,
+  .globe-label {
+    pointer-events: none;
+  }
+
   .globe:focus-visible {
     outline: 1px dashed var(--secondary-color);
     outline-offset: 4px;
