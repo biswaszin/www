@@ -17,8 +17,27 @@ const { hero = false } = Astro.props;
     bottom: 16px;
     z-index: 1;
     font-size: 8px;
-    pointer-events: none;
     user-select: none;
+    transform-origin: bottom left;
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  /* Grow on hover (mouse only; touch screens have no hover). The disc gets a
+     page-coloured backdrop so the enlarged globe stays readable over text. */
+  @media (hover: hover) {
+    .globe-grid {
+      border-radius: 50%;
+      transition: background-color 0.35s;
+    }
+
+    .globe:hover {
+      z-index: 10;
+      transform: scale(2);
+    }
+
+    .globe:hover .globe-grid {
+      background-color: var(--primary-color);
+    }
   }
 
   .globe :global(span) {
@@ -88,6 +107,7 @@ const { hero = false } = Astro.props;
       bottom: auto;
       flex-shrink: 0;
       font-size: clamp(4px, 1.55vw, 6.5px);
+      transform-origin: top right;
     }
   }
 
