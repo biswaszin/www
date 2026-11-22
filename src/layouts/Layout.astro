@@ -5,6 +5,7 @@ import Globe from "../components/Globe.astro";
 import ViewCounter from "../components/ViewCounter.astro";
 import { STATES, CAT_THEME } from "../themes.js";
 import { GLYPH_SETS } from "../globeGlyphs.js";
+import { ONEKO } from "../features.js";
 const { title = "bsws.", globe = true } = Astro.props;
 const isCatsPage = Astro.url.pathname.replace(/\/+$/, "") === "/cats";
 // Fonts for the globe's extra scripts. Google serves them by unicode-range, so
@@ -56,7 +57,7 @@ const globeFonts = GLYPH_SETS.filter((set) => set.font)
     <slot />
     {globe && <Globe />}
     <ViewCounter />
-    <!-- oneko cursor-chasing cat (black cat, white outline) -->
-    <script is:inline src="/oneko.js" data-cat="/images/oneko-blackcat.png"></script>
+    <!-- oneko cursor-chasing cat (black cat, white outline); toggle in src/features.js -->
+    {ONEKO && <script is:inline src="/oneko.js" data-cat="/images/oneko-blackcat.png"></script>}
   </body>
 </html>
