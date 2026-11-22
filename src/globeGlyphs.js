@@ -7,6 +7,8 @@
 //          vowel signs or virama (e.g. ा ি ্) attach to their neighbour and
 //          would break the grid.
 //  label:  the Kolkata pin label in this script
+//  numerals: digit style for the Kolkata clock beside the label, as a Unicode
+//          numbering system ("latn" = 0-9, "deva" = ०-९, "beng" = ০-৯)
 //  font:   Google Fonts family for scripts JetBrains Mono doesn't cover, or
 //          null. These glyphs are drawn slightly smaller inside the mono cell
 //          so the disc stays round. Layout.astro loads the fonts automatically.
@@ -19,18 +21,21 @@ export const GLYPH_SETS = [
       "ΓΔΘΛΞΠΣΦΨΩαβγδεζηθλμξπσφψω" +
       "БГДЖЗИЙЛПФЦЧШЩЪЫЬЭЮЯбвгджзийклмнптфцчшщъыьэюяѣѲ",
     label: "kolkata",
+    numerals: "latn",
     font: null,
   },
   {
     id: "hindi",
     glyphs: "अआइईउऊएऐओऔकखगघचछजझटठडढणतथदधनपफबभमयरलवशषसह०१२३४५६७८९",
     label: "कोलकाता",
+    numerals: "deva",
     font: "Noto Sans Devanagari",
   },
   {
     id: "bengali",
     glyphs: "অআইঈউঊএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহড়ঢ়য়ৎ০১২৩৪৫৬৭৮৯",
     label: "কলকাতা",
+    numerals: "beng",
     font: "Noto Sans Bengali",
   },
 ];

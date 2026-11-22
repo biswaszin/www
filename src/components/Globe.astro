@@ -127,6 +127,11 @@ const wideFont = [
     transform: translate(-100%, -50%);
   }
 
+  /* The clock's colon blinks with the pin (toggled from the script). */
+  .globe-label.is-blink :global(.globe-colon) {
+    visibility: hidden;
+  }
+
   .globe-label span {
     display: block;
     font-size: 11px;
@@ -221,6 +226,23 @@ const wideFont = [
   const sinT = Math.sin(TILT);
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  // Kolkata time for the pin label, 24-hour, in each script's own digits.
+  const clocks = SETS.map(
+    (set) =>
+      new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Asia/Kolkata",
+        hour: "2-digit",
+        minute: "2-digit",
+        hourCycle: "h23",
+        numberingSystem: set.numerals ?? "latn",
+      })
+  );
+  const kolkataTime = (set: number, now: Date) => {
+    const parts = clocks[set].formatToParts(now);
+    const part = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+    return `${part("hour")}<span class="globe-colon">:</span>${part("minute")}`;
+  };
+
   // Per-cell geometry is fixed; only the centre longitude changes.
   type Cell = { lat: number; dLon: number } | null;
   const cells: Cell[] = [];
@@ -259,6 +281,7 @@ const wideFont = [
     const grid = root.querySelector<HTMLElement>(".globe-grid")!;
     const label = root.querySelector<HTMLElement>(".globe-label")!;
     const labelText = label.querySelector("span")!;
+    let labelHtml = "";
 
     let mode = loadMode();
     const script: number[] = cells.map(() => mode); // glyph set index per cell
@@ -302,11 +325,19 @@ const wideFont = [
 
       if (pin) {
         const left = pin.c > COLS * 0.55;
-        const name = SETS[mode].label;
+        const now = new Date();
+        const text = `${SETS[mode].label} ${kolkataTime(mode, now)}`;
+        const html = left ? text + " ->" : "<- " + text;
         label.style.setProperty("--row", String(pin.r));
         label.style.setProperty("--col", String(left ? pin.c - 0.5 : pin.c + 1.5));
         label.classList.toggle("is-left", left);
-        labelText.textContent = left ? name + " ->" : "<- " + name;
+        // Rewrite only when the text changes (each minute, or on a script switch).
+        if (html !== labelHtml) {
+          labelText.innerHTML = html;
+          labelHtml = html;
+        }
+        // Colon off for the second half of every second, like the pin.
+        label.classList.toggle("is-blink", !reduceMotion && now.getMilliseconds() >= 500);
         label.hidden = false;
       } else {
         label.hidden = true;
@@ -355,6 +386,8 @@ const wideFont = [
 
     if (reduceMotion) {
       draw();
+      // No animation loop here, so refresh the clock on its own.
+      setInterval(draw, 15_000);
       return;
     }
 
