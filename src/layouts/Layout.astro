@@ -6,7 +6,7 @@ import ViewCounter from "../components/ViewCounter.astro";
 import { STATES, CAT_THEME } from "../themes.js";
 import { GLYPH_SETS } from "../globeGlyphs.js";
 import { ONEKO } from "../features.js";
-const { title = "bsws.", globe = true } = Astro.props;
+const { title = "Ankit Biswas", globe = true } = Astro.props;
 const isCatsPage = Astro.url.pathname.replace(/\/+$/, "") === "/cats";
 // Fonts for the globe's extra scripts. Google serves them by unicode-range, so
 // each one only downloads once its script is actually on screen.
@@ -33,7 +33,11 @@ const globeFonts = GLYPH_SETS.filter((set) => set.font)
       href={`https://fonts.googleapis.com/css2?family=Jacquard+12+Charted${globeFonts}&display=swap`}
       rel="stylesheet"
     />
-    <link rel="icon" type="image/png" href="/images/favicon.ico" />
+    <link rel="icon" href="/favicon/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+    <link rel="manifest" href="/favicon/site.webmanifest" />
     <!-- Apply the saved theme before first paint so page changes don't flash.
          The /cats page is themed by html.theme-cat instead. -->
     {!isCatsPage && (
