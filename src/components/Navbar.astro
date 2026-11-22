@@ -16,10 +16,109 @@ import Avatar from "./Avatar.astro";
         <li>
           <a href="/cats">[ cats(s) ]</a>
         </li>
-        <li>
-          <a class="text-block" href="mailto:biswaszin@gmail.com">biswaszin[at]gmail.com</a>
+        <li class="email">
+          <!-- Clicking copies the address; mailto stays as the fallback when
+               copying isn't possible (or JS is off). -->
+          <a
+            class="text-block email-copy"
+            href="mailto:biswaszin@gmail.com"
+            data-email="biswaszin@gmail.com"
+            title="click to copy"
+          >biswaszin[at]gmail.com</a>
+          <span class="text-block email-toast" role="status" aria-live="polite"></span>
         </li>
       </ul>
     </div>
   </div>
 </nav>
+
+<style>
+  .email {
+    position: relative;
+  }
+
+  /* "copied!" pops up just left of the address, in the default block style. */
+  .email-toast {
+    position: absolute;
+    right: calc(100% + 8px);
+    top: 50%;
+    font-size: 14px;
+    font-style: normal;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(6px, -50%);
+    transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
+  }
+
+  .email-toast.is-shown {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(0, -50%);
+  }
+
+  /* Phones: no room on the left, so it drops in just below the address. */
+  @media (max-width: 652px) {
+    .email-toast {
+      right: 8px;
+      top: 100%;
+      transform: translateY(-6px);
+    }
+
+    .email-toast.is-shown {
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .email-toast {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  const SHOW_MS = 1500;
+
+  // Clipboard API first; the old execCommand route covers plain-http pages
+  // (e.g. the dev server opened by IP), where the API isn't available.
+  async function copy(text: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (e) {}
+    try {
+      const area = document.createElement("textarea");
+      area.value = text;
+      area.setAttribute("readonly", "");
+      area.style.position = "fixed";
+      area.style.opacity = "0";
+      document.body.append(area);
+      area.select();
+      const ok = document.execCommand("copy");
+      area.remove();
+      return ok;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  document.querySelectorAll<HTMLAnchorElement>(".email-copy").forEach((link) => {
+    const toast = link.parentElement!.querySelector<HTMLElement>(".email-toast")!;
+    let timer = 0;
+
+    link.addEventListener("click", async (e) => {
+      e.preventDefault();
+      const email = link.dataset.email!;
+      if (!(await copy(email))) {
+        location.href = link.href; // couldn't copy: open the mail app instead
+        return;
+      }
+      toast.textContent = "copied!";
+      toast.classList.add("is-shown");
+      clearTimeout(timer);
+      timer = window.setTimeout(() => toast.classList.remove("is-shown"), SHOW_MS);
+    });
+  });
+</script>

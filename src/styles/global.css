@@ -148,7 +148,6 @@ span {
    (or keyboard focus) swaps the text and background colours. */
 .text-block {
   padding: 0 4px;
-  border: 1px solid var(--secondary-color);
   color: var(--secondary-color);
   background: var(--primary-color);
   -webkit-box-decoration-break: clone;
