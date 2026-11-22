@@ -11,7 +11,8 @@
 //          numbering system ("latn" = 0-9, "deva" = ०-९, "beng" = ০-৯)
 //  font:   Google Fonts family for scripts JetBrains Mono doesn't cover, or
 //          null. These glyphs are drawn slightly smaller inside the mono cell
-//          so the disc stays round. Layout.astro loads the fonts automatically.
+//          so the disc stays round. astro.config.mjs self-hosts the fonts.
+//  subset: Google Fonts subset holding this script's glyphs (with `font`)
 export const GLYPH_SETS = [
   {
     id: "default",
@@ -30,6 +31,7 @@ export const GLYPH_SETS = [
     label: "कोलकाता",
     numerals: "deva",
     font: "Noto Sans Devanagari",
+    subset: "devanagari",
   },
   {
     id: "bengali",
@@ -37,5 +39,11 @@ export const GLYPH_SETS = [
     label: "কলকাতা",
     numerals: "beng",
     font: "Noto Sans Bengali",
+    subset: "bengali",
   },
 ];
+
+// CSS variable Astro's Fonts API exposes for a glyph set's font,
+// e.g. "Noto Sans Bengali" -> "--font-noto-sans-bengali".
+export const fontVar = (font) =>
+  `--font-${font.toLowerCase().replaceAll(" ", "-")}`;

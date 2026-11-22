@@ -4,13 +4,13 @@
 // Clicking it cycles through the glyph sets in src/globeGlyphs.js (default ->
 // hindi -> bengali), remembered for the tab session. `hero` marks the home-page
 // instance that sits in the hero on phones.
-import { GLYPH_SETS } from "../globeGlyphs.js";
+import { GLYPH_SETS, fontVar } from "../globeGlyphs.js";
 
 const { hero = false } = Astro.props;
 // Font stack for the scripts JetBrains Mono lacks; the browser picks the right
 // one per character, so mixed scripts mid-ripple still render.
 const wideFont = [
-  ...GLYPH_SETS.filter((set) => set.font).map((set) => `"${set.font}"`),
+  ...GLYPH_SETS.filter((set) => set.font).map((set) => `var(${fontVar(set.font)})`),
   "sans-serif",
 ].join(", ");
 ---
@@ -94,7 +94,7 @@ const wideFont = [
 
   .globe-grid {
     margin: 0;
-    font-family: "JetBrains Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 1em;
     line-height: 1;
     font-style: normal;
@@ -138,7 +138,7 @@ const wideFont = [
     line-height: 1.2;
     padding: 0 3px;
     white-space: nowrap;
-    font-family: "JetBrains Mono", var(--globe-wide-font), monospace;
+    font-family: var(--font-mono), var(--globe-wide-font);
     color: var(--secondary-color);
     background: var(--primary-color);
   }

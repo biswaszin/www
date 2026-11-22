@@ -4,7 +4,8 @@ import Navbar from "../components/Navbar.astro";
 import Globe from "../components/Globe.astro";
 import ViewCounter from "../components/ViewCounter.astro";
 import { STATES, CAT_THEME } from "../themes.js";
-import { GLYPH_SETS } from "../globeGlyphs.js";
+import { GLYPH_SETS, fontVar } from "../globeGlyphs.js";
+import { Font } from "astro:assets";
 import { ONEKO } from "../features.js";
 const {
   title = "Ankit Biswas",
@@ -14,11 +15,9 @@ const {
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const ogImage = new URL("/og.jpg", Astro.site);
 const isCatsPage = Astro.url.pathname.replace(/\/+$/, "") === "/cats";
-// Fonts for the globe's extra scripts. Google serves them by unicode-range, so
-// each one only downloads once its script is actually on screen.
-const globeFonts = GLYPH_SETS.filter((set) => set.font)
-  .map((set) => `&family=${set.font.replaceAll(" ", "+")}:wght@400;700`)
-  .join("");
+// Fonts for the globe's extra scripts. Their @font-face rules carry a
+// unicode-range, so each one only downloads once its script is on screen.
+const globeFontVars = GLYPH_SETS.filter((set) => set.font).map((set) => fontVar(set.font));
 ---
 
 <!doctype html>
@@ -46,18 +45,11 @@ const globeFonts = GLYPH_SETS.filter((set) => set.font)
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href={`https://fonts.googleapis.com/css2?family=Jacquard+12+Charted${globeFonts}&display=swap`}
-      rel="stylesheet"
-    />
+    <!-- Self-hosted fonts (configured in astro.config.mjs). Only the body
+         font is preloaded; the others download when something uses them. -->
+    <Font cssVariable="--font-mono" preload={[{ subset: "latin", weight: 400 }]} />
+    <Font cssVariable="--font-display" />
+    {globeFontVars.map((v) => <Font cssVariable={v} />)}
     <link rel="icon" href="/favicon/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
