@@ -1,2 +1,2 @@
-# personal-website
-just a personal website of mine
+
+hey there, thank you and have a nice day
