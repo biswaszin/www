@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import Navbar from "../components/Navbar.astro";
 import Globe from "../components/Globe.astro";
+import ViewCounter from "../components/ViewCounter.astro";
 import { STATES, CAT_THEME } from "../themes.js";
 import { GLYPH_SETS } from "../globeGlyphs.js";
 const { title = "bsws.", globe = true } = Astro.props;
@@ -54,6 +55,7 @@ const globeFonts = GLYPH_SETS.filter((set) => set.font)
     <Navbar />
     <slot />
     {globe && <Globe />}
+    <ViewCounter />
     <!-- oneko cursor-chasing cat (black cat, white outline) -->
     <script is:inline src="/oneko.js" data-cat="/images/oneko-blackcat.png"></script>
   </body>

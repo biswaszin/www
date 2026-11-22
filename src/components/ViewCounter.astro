@@ -1,0 +1,68 @@
+---
+
+// CounterAPI my goat.
+
+---
+
+<div class="view-counter" aria-live="polite" hidden><span></span></div>
+
+<style>
+  .view-counter {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 1;
+    user-select: none;
+  }
+
+  .view-counter span {
+    display: block;
+    font-size: 11px;
+    line-height: 1.2;
+    padding: 0 3px;
+    white-space: nowrap;
+    font-family: "JetBrains Mono", monospace;
+    font-style: normal;
+    color: var(--secondary-color);
+    background: var(--primary-color);
+  }
+</style>
+
+<script>
+  // Counter Worker on our own subdomain (source in counter/). Being part of
+  // biswaszin.com, ad blockers treat it as first-party and let it through.
+  const COUNTER = "https://views.biswaszin.com";
+  const STORAGE_KEY = "viewCounted";
+
+  const counted = () => {
+    try {
+      return sessionStorage.getItem(STORAGE_KEY) === "true";
+    } catch (e) {
+      return false;
+    }
+  };
+  const markCounted = () => {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, "true");
+    } catch (e) {}
+  };
+
+  async function show(root: HTMLElement) {
+    // Count once per tab session, and never while developing locally.
+    const isNewVisit = !counted() && !import.meta.env.DEV;
+    try {
+      const res = await fetch(isNewVisit ? `${COUNTER}/hit` : COUNTER, {
+        method: isNewVisit ? "POST" : "GET",
+        cache: "no-store",
+      });
+      if (!res.ok) return;
+      const { views } = await res.json();
+      if (typeof views !== "number") return;
+      if (isNewVisit) markCounted();
+      root.querySelector("span")!.textContent = `views -> ${views.toLocaleString("en-IN")}`;
+      root.hidden = false;
+    } catch (e) {}
+  }
+
+  document.querySelectorAll<HTMLElement>(".view-counter").forEach(show);
+</script>

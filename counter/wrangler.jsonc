@@ -1,0 +1,14 @@
+// Cloudflare Worker for the site's view counter. Deploy from this folder with
+// `npx wrangler deploy` (log in once with `npx wrangler login`).
+{
+  "name": "biswaszin-views",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-01",
+  // Cloudflare creates the DNS record for this subdomain on deploy.
+  "routes": [{ "pattern": "views.biswaszin.com", "custom_domain": true }],
+  "workers_dev": false,
+  "durable_objects": {
+    "bindings": [{ "name": "COUNTER", "class_name": "Counter" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Counter"] }]
+}
