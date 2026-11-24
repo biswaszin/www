@@ -63,7 +63,7 @@ const isCatsPage = Astro.url.pathname.replace(/\/+$/, "") === "/cats";
   <button type="button" class="avatar-btn" aria-label="Change theme">
     <img
       class="avatar-icon"
-      src={isCatsPage ? "/images/cat-avatar.jpg" : "/images/RukawaKaede.jpg"}
+      src={isCatsPage ? "/images/cat-avatar.jpg" : "/images/star.jpg"}
       alt="logo"
     />
     <!-- Set the saved avatar image before first paint (no flash). -->
@@ -81,7 +81,14 @@ const isCatsPage = Astro.url.pathname.replace(/\/+$/, "") === "/cats";
         } catch (e) {}
       }
     </script>
-    <p class="avatar-poke">[<span class="poke-arrow" aria-hidden="true"> &lt;-</span> poke me ]</p>
+    <p class="avatar-poke">
+      [
+      <span class="poke-arrow" aria-hidden="true">
+        {" "}
+        &lt;-
+      </span>{" "}
+      poke me ]
+    </p>
   </button>
   <h1 class="avatar-name">[ biswaszin ]</h1>
 </div>

@@ -388,3 +388,19 @@ span {
     font-size: 16px;
   }
 }
+
+/* Narrow desktop windows: pull the name, menu and gaps in just enough that
+   the desktop header stays on one row instead of wrapping halfway. */
+@media (min-width: 653px) and (max-width: 760px) {
+  .navbar .container {
+    gap: 0.5rem;
+  }
+
+  .navbar ul li a {
+    padding: 8px 4px;
+  }
+
+  .avatar-name {
+    padding: 0 0.5rem;
+  }
+}
