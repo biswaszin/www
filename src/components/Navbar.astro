@@ -58,16 +58,18 @@ import Avatar from "./Avatar.astro";
     transform: translate(0, -50%);
   }
 
-  /* Phones: no room on the left, so it drops in just below the address. */
+  /* Phones: the address is centred on its own row, so the toast drops in
+     directly underneath it. */
   @media (max-width: 652px) {
     .email-toast {
-      right: 8px;
+      left: 50%;
+      right: auto;
       top: 100%;
-      transform: translateY(-6px);
+      transform: translate(-50%, -6px);
     }
 
     .email-toast.is-shown {
-      transform: translateY(0);
+      transform: translate(-50%, 0);
     }
   }
 

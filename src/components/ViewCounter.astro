@@ -26,6 +26,22 @@
     color: var(--secondary-color);
     background: var(--primary-color);
   }
+
+  /* Phones: the count becomes a footer under the last dashed rule instead of
+     floating over the text. */
+  @media (max-width: 900px) {
+    .view-counter {
+      position: static;
+      display: flex;
+      justify-content: flex-end;
+      margin: 0 15px;
+      padding: 0.75rem 0 1.25rem;
+    }
+
+    .view-counter[hidden] {
+      display: none;
+    }
+  }
 </style>
 
 <script>

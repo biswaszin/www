@@ -149,7 +149,7 @@ const wideFont = [
     }
   }
 
-  @media (max-width: 652px) {
+  @media (max-width: 900px) {
     .globe {
       display: none;
     }
@@ -162,6 +162,24 @@ const wideFont = [
       flex-shrink: 0;
       font-size: clamp(4px, 1.55vw, 6.5px);
       transform-origin: top right;
+    }
+
+    /* Keep the city label under the globe on phones so it cannot spill off
+       the right edge or overlap the name. */
+    .globe--hero .globe-label,
+    .globe--hero .globe-label.is-left {
+      left: 50%;
+      right: auto;
+      top: 100%;
+      transform: translateX(-50%);
+      margin-top: 2px;
+    }
+  }
+
+  /* Narrow phones: scale the globe with the name so both fit side by side. */
+  @media (max-width: 430px) {
+    .globe--hero {
+      font-size: clamp(3.5px, 1.3vw, 5.5px);
     }
   }
 
@@ -225,6 +243,7 @@ const wideFont = [
   const cosT = Math.cos(TILT);
   const sinT = Math.sin(TILT);
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const mobileGlobe = matchMedia("(max-width: 900px)");
 
   // Kolkata time for the pin label, 24-hour, in each script's own digits.
   const clocks = SETS.map(
@@ -281,6 +300,7 @@ const wideFont = [
     const grid = root.querySelector<HTMLElement>(".globe-grid")!;
     const label = root.querySelector<HTMLElement>(".globe-label")!;
     const labelText = label.querySelector("span")!;
+    const isHero = root.classList.contains("globe--hero");
     let labelHtml = "";
 
     let mode = loadMode();
@@ -324,20 +344,29 @@ const wideFont = [
       grid.innerHTML = html;
 
       if (pin) {
-        const left = pin.c > COLS * 0.55;
-        const now = new Date();
-        const text = `${SETS[mode].label} ${kolkataTime(mode, now)}`;
-        const html = left ? text + " ->" : "<- " + text;
-        label.style.setProperty("--row", String(pin.r));
-        label.style.setProperty("--col", String(left ? pin.c - 0.5 : pin.c + 1.5));
-        label.classList.toggle("is-left", left);
+        // On phones the hero globe is small and sits beside the name, so show
+        // just the city below it. Desktop keeps the pin-anchored clock.
+        const compact = isHero && mobileGlobe.matches;
+        let html: string;
+        if (compact) {
+          html = SETS[mode].label;
+          label.classList.remove("is-left", "is-blink");
+        } else {
+          const left = pin.c > COLS * 0.55;
+          const now = new Date();
+          const text = `${SETS[mode].label} ${kolkataTime(mode, now)}`;
+          html = left ? text + " ->" : "<- " + text;
+          label.style.setProperty("--row", String(pin.r));
+          label.style.setProperty("--col", String(left ? pin.c - 0.5 : pin.c + 1.5));
+          label.classList.toggle("is-left", left);
+          // Colon off for the second half of every second, like the pin.
+          label.classList.toggle("is-blink", !reduceMotion && now.getMilliseconds() >= 500);
+        }
         // Rewrite only when the text changes (each minute, or on a script switch).
         if (html !== labelHtml) {
           labelText.innerHTML = html;
           labelHtml = html;
         }
-        // Colon off for the second half of every second, like the pin.
-        label.classList.toggle("is-blink", !reduceMotion && now.getMilliseconds() >= 500);
         label.hidden = false;
       } else {
         label.hidden = true;

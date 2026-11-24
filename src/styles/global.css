@@ -67,17 +67,38 @@ span {
   line-height: 1.5;
 }
 
+.poke-arrow {
+  display: none;
+}
+
 /* Navbar */
 .navbar {
   padding: clamp(1rem, 3vw, 2.5rem) 0;
 }
 
 .navbar .container {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   flex-wrap: wrap;
   gap: 1rem;
+  padding-bottom: 1.25rem;
+}
+
+/* Long-dash rule under the nav, matching the bracket-terminal look. */
+.navbar .container::after {
+  content: "";
+  position: absolute;
+  left: 15px;
+  right: 15px;
+  bottom: 0;
+  height: 1px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    currentColor 0 10px,
+    transparent 10px 16px
+  );
 }
 
 .navbar .main-menu ul{
@@ -108,11 +129,31 @@ span {
 }
 
 /* Hero */
+.hero-section {
+  padding-bottom: 2rem;
+}
+
 .hero-section .container {
+  position: relative;
   display: flex;
   gap: 2rem;
   justify-content: space-between;
   align-items: flex-start;
+  padding-bottom: 1.5rem;
+}
+
+.hero-section .container::after {
+  content: "";
+  position: absolute;
+  left: 15px;
+  right: 15px;
+  bottom: 0;
+  height: 1px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    currentColor 0 10px,
+    transparent 10px 16px
+  );
 }
 
 .hero-section .hero-personal {
@@ -120,8 +161,11 @@ span {
 }
 
 .hero-links {
-  width: 0;
-  min-width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  width: auto;
+  min-width: 0;
 }
 
 .hero-links li {
@@ -179,9 +223,40 @@ span {
 /*Media Queries*/
 
 @media (max-width: 900px) {
+  .hero-section {
+    padding-bottom: 0;
+  }
+
   .hero-section .container{
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .hero-section .hero-personal {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .hero-id {
+    min-width: 0;
+  }
+
+  .hero-section .hero-personal::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background-image: repeating-linear-gradient(
+      90deg,
+      currentColor 0 10px,
+      transparent 10px 16px
+    );
   }
 
   .hero-text {
@@ -190,37 +265,84 @@ span {
 }
 
 @media (max-width: 652px) {
-  .avatar {
+  /* Compact identity header, with the nav on its own row below. */
+  .navbar .container {
     flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .navbar .main-menu {
+    width: 100%;
+  }
+
+  .navbar .main-menu ul {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0 4px;
+  }
+
+  .navbar ul li a {
+    padding: 6px;
+    font-size: 16px;
+  }
+
+  .navbar .main-menu .email {
+    flex-basis: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .avatar {
+    flex-direction: row;
     align-items: flex-start;
+    justify-content: flex-start;
+    gap: 1rem;
   }
 
   .avatar-btn {
-    flex-direction: column-reverse;
+    position: relative;
+    display: block;
+    flex: 0 0 120px;
+    width: 120px;
+  }
+
+  /* Solid divider between the portrait and the identity text. */
+  .avatar-btn::after {
+    content: "";
+    position: absolute;
+    left: calc(100% + 0.5rem);
+    top: 0;
+    bottom: 0;
+    border-left: 1px solid var(--secondary-color);
+  }
+
+  .avatar-poke {
+    position: absolute;
+    left: calc(100% + 1rem);
+    top: 0;
+    white-space: nowrap;
+    line-height: 1.5;
+  }
+
+  .poke-arrow {
+    display: inline;
   }
 
   .avatar-name {
     padding: 0;
-    width: 120px;
+    width: auto;
+    margin-top: 2rem;
     white-space: nowrap;
-    text-align: center;
-    font-size: 1.5rem;
+    text-align: left;
+    font-size: 1.75rem;
   }
 
   .avatar-icon {
     width: 120px;
     height: 120px;
-  }
-
-  .hero-section .hero-personal {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .hero-id {
-    min-width: 0;
   }
 
   .hero-name {
@@ -237,5 +359,32 @@ span {
 
   .hero-links li a {
     padding: 0;
+  }
+}
+
+/* Phones: keep the nav on one compact line and scale the name/globe so
+   "[ Ankit Biswas ]" stays on a single line. */
+@media (max-width: 430px) {
+  .navbar .main-menu ul {
+    gap: 0 2px;
+  }
+
+  .navbar ul li a {
+    padding: 6px 4px;
+    font-size: 14px;
+  }
+
+  .hero-section .hero-personal {
+    gap: 0.25rem;
+  }
+
+  .hero-name {
+    font-size: clamp(1.2rem, 6.1vw, 1.5rem);
+  }
+}
+
+@media (max-width: 340px) {
+  .avatar-poke {
+    font-size: 16px;
   }
 }
