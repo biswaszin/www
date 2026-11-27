@@ -3,7 +3,7 @@
 // drawn bold and sea is drawn faint, with a blinking pin on Kolkata.
 // Clicking it cycles through the glyph sets in src/globeGlyphs.js (default ->
 // hindi -> bengali), remembered for the tab session. `hero` marks the home-page
-// instance that sits in the hero on phones.
+// instance that flows under the links, beside the body text.
 import { GLYPH_SETS, fontVar } from "../globeGlyphs.js";
 
 const { hero = false } = Astro.props;
@@ -23,7 +23,7 @@ const wideFont = [
   style={`--globe-wide-font: ${wideFont}`}
 >
   <pre class="globe-grid" aria-hidden="true"></pre>
-  <div class="globe-label" aria-hidden="true" hidden><span></span></div>
+  <div class="globe-label" aria-hidden="true"><span></span></div>
 </div>
 
 <style>
@@ -32,30 +32,23 @@ const wideFont = [
     left: 16px;
     bottom: 16px;
     z-index: 1;
+    /* Room for the clock caption directly under the disc. */
+    padding-bottom: 22px;
     font-size: 8px;
     user-select: none;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transform-origin: bottom left;
-    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
-  /* Grow on hover (mouse only; touch screens have no hover). The disc gets a
-     page-coloured backdrop so the enlarged globe stays readable over text. */
-  @media (hover: hover) {
-    .globe-grid {
-      border-radius: 50%;
-      transition: background-color 0.35s;
-    }
-
-    .globe:hover {
-      z-index: 10;
-      transform: scale(2);
-    }
-
-    .globe:hover .globe-grid {
-      background-color: var(--primary-color);
-    }
+  /* Home-page instance: flows under the name and links, in the left column next
+     to the body text, instead of floating in the page corner. */
+  .globe--hero {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    width: fit-content;
+    margin-top: 1.25rem;
+    font-size: clamp(10px, 1.25vw, 13.5px);
   }
 
   /* The grid is rebuilt every frame. If a press landed on a glyph element that
@@ -112,19 +105,16 @@ const wideFont = [
     text-align: center;
     font-weight: 700;
     color: var(--secondary-color);
-    transform: scale(1.6);
+    transform: scale(2.2);
     animation: globe-blink 1s steps(1, end) infinite;
   }
 
+  /* Caption centred under the disc, inside the globe's reserved padding. */
   .globe-label {
     position: absolute;
-    left: calc(var(--col, 0) * 0.6em);
-    top: calc(var(--row, 0) * 1em + 0.5em);
-    transform: translateY(-50%);
-  }
-
-  .globe-label.is-left {
-    transform: translate(-100%, -50%);
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
   }
 
   /* The clock's colon blinks with the pin (toggled from the script). */
@@ -134,7 +124,7 @@ const wideFont = [
 
   .globe-label span {
     display: block;
-    font-size: 11px;
+    font-size: 14px;
     line-height: 1.2;
     padding: 0 3px;
     white-space: nowrap;
@@ -154,25 +144,18 @@ const wideFont = [
       display: none;
     }
 
+    /* Phones: the hero globe returns to its compact spot beside the name. */
     .globe--hero {
       display: block;
-      position: relative;
-      left: auto;
-      bottom: auto;
+      margin-top: 0;
+      padding-bottom: 16px;
       flex-shrink: 0;
       font-size: clamp(4px, 1.55vw, 6.5px);
-      transform-origin: top right;
     }
 
-    /* Keep the city label under the globe on phones so it cannot spill off
-       the right edge or overlap the name. */
-    .globe--hero .globe-label,
-    .globe--hero .globe-label.is-left {
-      left: 50%;
-      right: auto;
-      top: 100%;
-      transform: translateX(-50%);
-      margin-top: 2px;
+    /* And the caption is just the city, not the clock. */
+    .globe--hero .globe-label span {
+      font-size: 11px;
     }
   }
 
@@ -300,7 +283,6 @@ const wideFont = [
     const grid = root.querySelector<HTMLElement>(".globe-grid")!;
     const label = root.querySelector<HTMLElement>(".globe-label")!;
     const labelText = label.querySelector("span")!;
-    const isHero = root.classList.contains("globe--hero");
     let labelHtml = "";
 
     let mode = loadMode();
@@ -343,34 +325,18 @@ const wideFont = [
       }
       grid.innerHTML = html;
 
-      if (pin) {
-        // On phones the hero globe is small and sits beside the name, so show
-        // just the city below it. Desktop keeps the pin-anchored clock.
-        const compact = isHero && mobileGlobe.matches;
-        let html: string;
-        if (compact) {
-          html = SETS[mode].label;
-          label.classList.remove("is-left", "is-blink");
-        } else {
-          const left = pin.c > COLS * 0.55;
-          const now = new Date();
-          const text = `${SETS[mode].label} ${kolkataTime(mode, now)}`;
-          html = left ? text + " ->" : "<- " + text;
-          label.style.setProperty("--row", String(pin.r));
-          label.style.setProperty("--col", String(left ? pin.c - 0.5 : pin.c + 1.5));
-          label.classList.toggle("is-left", left);
-          // Colon off for the second half of every second, like the pin.
-          label.classList.toggle("is-blink", !reduceMotion && now.getMilliseconds() >= 500);
-        }
-        // Rewrite only when the text changes (each minute, or on a script switch).
-        if (html !== labelHtml) {
-          labelText.innerHTML = html;
-          labelHtml = html;
-        }
-        label.hidden = false;
-      } else {
-        label.hidden = true;
+      const now = new Date();
+      // Phones show just the city under the small globe; desktop shows the clock.
+      const text = mobileGlobe.matches
+        ? SETS[mode].label
+        : `${SETS[mode].label} ${kolkataTime(mode, now)}`;
+      // Rewrite only when the text changes (each minute, or on a script switch).
+      if (text !== labelHtml) {
+        labelText.innerHTML = text;
+        labelHtml = text;
       }
+      // Colon off for the second half of every second, like the pin.
+      label.classList.toggle("is-blink", !reduceMotion && now.getMilliseconds() >= 500);
     }
 
     // Flip every cell whose ripple time has passed to the current mode.
